@@ -44,7 +44,6 @@ jobs:
           npm install --ignore-scripts
           node-gyp rebuild
 
-  # Optional: macOS build
   build-mac:
     name: Build for macOS x64
     runs-on: macos-12
