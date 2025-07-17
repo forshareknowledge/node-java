@@ -1,0 +1,69 @@
+name: Build node-java Bindings
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-linux:
+    name: Build for Linux x64
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 g++ unzip
+
+      - name: Set up JDK 8 manually
+        run: |
+          mkdir -p $HOME/jdk
+          curl -L -o jdk8.tar.gz https://filebin.net/0rosxmj9kivazibs/jdk-8u281-linux-x64.tar.gz
+          tar -xzf jdk8.tar.gz -C $HOME/jdk --strip-components=1
+
+      - name: Set JAVA_HOME
+        run: |
+          echo "JAVA_HOME=$HOME/jdk" >> $GITHUB_ENV
+          echo "$HOME/jdk/bin" >> $GITHUB_PATH
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install node-gyp
+        run: npm install -g node-gyp
+
+      - name: Install dependencies and build
+        run: |
+          npm install --ignore-scripts
+          node-gyp rebuild
+
+  # Optional: macOS build
+  build-mac:
+    name: Build for macOS x64
+    runs-on: macos-12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install python@3.11
+          brew install openjdk@8
+          echo "JAVA_HOME=$(/usr/libexec/java_home -v 1.8)" >> $GITHUB_ENV
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Build node-java
+        run: |
+          npm install --ignore-scripts
+          node-gyp rebuild
